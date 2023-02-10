@@ -5,9 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.var;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +21,15 @@ public class GenerateDataFileService {
         fileUtilsService.deleteExitingFile("flyingData");
         var file = new File(fileUtilsService.getDefaultFolderPath() + "/flyingData.txt");
         file.createNewFile();
-        FileWriter fw = new FileWriter(file);
-        buildHeader(fw);
-        var lastId = new AtomicLong(0L);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(file));
+        buildHeader(bw);
+        var lastId = new AtomicLong(1L);
 
         List<Thread> threads = new ArrayList<>();
-        threads.add(new GenerateFileThread(fw, 250_000, lastId));
-        threads.add(new GenerateFileThread(fw, 250_000, lastId));
-        threads.add(new GenerateFileThread(fw, 250_000, lastId));
-        threads.add(new GenerateFileThread(fw, 250_000, lastId));
+        threads.add(new GenerateFileThread(bw, 250_000, lastId));
+        threads.add(new GenerateFileThread(bw, 250_000, lastId));
+        threads.add(new GenerateFileThread(bw, 250_000, lastId));
+        threads.add(new GenerateFileThread(bw, 250_000, lastId));
 
         for (Thread thread : threads)
             thread.start();
@@ -39,9 +37,9 @@ public class GenerateDataFileService {
         for(Thread thread : threads)
             thread.join();
 
-        fw.close();
+        bw.close();
     }
-    private void buildHeader(FileWriter file) throws IOException {
+    private void buildHeader(BufferedWriter file) throws IOException {
         file.write("id|timestamp|location|temperature|observatory\n");
     }
 }

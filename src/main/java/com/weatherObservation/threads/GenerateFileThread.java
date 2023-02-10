@@ -2,7 +2,7 @@ package com.weatherObservation.threads;
 
 import lombok.var;
 
-import java.io.FileWriter;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,11 +13,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class GenerateFileThread extends Thread{
 
-    private FileWriter fileToBeWritten;
+    private BufferedWriter fileToBeWritten;
     private Integer range;
     private AtomicLong lastId;
+    private Random random = new Random();
 
-    public GenerateFileThread(FileWriter fileToBeWritten, Integer range, AtomicLong lastId) {
+    public GenerateFileThread(BufferedWriter fileToBeWritten, Integer range, AtomicLong lastId) {
         this.fileToBeWritten = fileToBeWritten;
         this.range = range;
         this.lastId = lastId;
@@ -27,14 +28,11 @@ public class GenerateFileThread extends Thread{
     @Override
     public void run() {
         try {
-            StringBuilder content = new StringBuilder();
             StringBuilder temperature = new StringBuilder();
             StringBuilder location = new StringBuilder();
 
             for (int i = 0; i < range; i++) {
-                content.append(buildObservationContent(temperature, location));
-                fileToBeWritten.write(content.toString());
-                content.setLength(0);
+                writeContent(temperature, location);
                 temperature.setLength(0);
                 location.setLength(0);
             }
@@ -45,7 +43,7 @@ public class GenerateFileThread extends Thread{
         }
     }
 
-    private String buildObservationContent(StringBuilder temperature, StringBuilder location) throws ParseException {
+    private void writeContent(StringBuilder temperature, StringBuilder location) throws ParseException, IOException {
         var randomObservatory = generateRandomObservatory();
         switch (randomObservatory) {
             case "AU":
@@ -93,7 +91,8 @@ public class GenerateFileThread extends Thread{
                 );
                 break;
         }
-        return lastId.addAndGet(1L) + "|" + buildTimeStamp() + "|" + location + "|" + temperature + "|" + randomObservatory + "\n";
+        var content = "|" + buildTimeStamp() + "|" + location + "|" + temperature + "|" + randomObservatory + "\n";
+        fileToBeWritten.write(lastId.getAndAdd(1L) + content);
     }
 
     private String buildTimeStamp() throws ParseException {
@@ -106,7 +105,7 @@ public class GenerateFileThread extends Thread{
     }
 
     private String generateRandomObservatory() {
-        int observatoryChance = buildRandom().nextInt(100);
+        int observatoryChance = random.nextInt(100);
         if (observatoryChance <= 25)
             return "AU";
         if (observatoryChance<=50)
@@ -125,18 +124,14 @@ public class GenerateFileThread extends Thread{
             Double pointY,
             Boolean generateRandomLocation
     ) {
-        temperature.append(buildRandom().nextInt(maxTemperature - minTemperature) + minTemperature);
+        temperature.append(random.nextInt(maxTemperature - minTemperature) + minTemperature);
         location.append(generateRandomLocation ? generateRandomLocation() : pointX + "," + pointY);
     }
 
     private String generateRandomLocation() {
-        Double pointX = ((-100) + (100 - (-100)) * buildRandom().nextDouble());
-        Double pointY = ((-100) + (100 - (-100)) * buildRandom().nextDouble());
+        Double pointX = ((-100) + (100 - (-100)) * random.nextDouble());
+        Double pointY = ((-100) + (100 - (-100)) * random.nextDouble());
         return pointX + "," + pointY;
-    }
-
-    private Random buildRandom() {
-        return new Random();
     }
 
 
