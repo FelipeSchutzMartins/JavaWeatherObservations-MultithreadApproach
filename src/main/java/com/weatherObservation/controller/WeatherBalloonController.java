@@ -17,7 +17,7 @@ import java.text.ParseException;
 public class WeatherBalloonController {
     private GenerateDataFileService generateDataFileService;
 
-    @PostMapping("/multiThreadGenerateFile")
+    @PostMapping("/createReportFile")
     public ResponseEntity<?> generateFile() throws IOException, ParseException, InterruptedException {
         generateDataFileService.generateFile();
         return ResponseEntity.ok(HttpStatus.OK);

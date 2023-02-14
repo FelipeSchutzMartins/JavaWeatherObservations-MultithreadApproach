@@ -17,7 +17,7 @@ public class GenerateDataFileService {
 
     private FileUtilsService fileUtilsService;
 
-    public void generateFile() throws IOException, ParseException, InterruptedException {
+    public void generateFile() throws IOException, InterruptedException {
         fileUtilsService.deleteExitingFile("flyingData");
         var file = new File(fileUtilsService.getDefaultFolderPath() + "/flyingData.txt");
         file.createNewFile();
